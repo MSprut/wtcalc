@@ -1,0 +1,45 @@
+/* Компактная таблица: меньший шрифт, узкие паддинги, одна строка + троеточие */
+.table-compact {
+    table-layout: fixed;
+    /* фиксированная ширина колонок — нужно для ellipsis */
+    font-size: 12px;
+    /* можно 11px, если колонок много */
+}
+
+.table-compact th,
+.table-compact td {
+    padding: .25rem .5rem;
+    /* ещё компактнее, чем .table-sm */
+    white-space: nowrap;
+    /* всё в одну строку */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* обрезка с троеточием */
+}
+
+/* Чуть компактнее заголовок карточки */
+.card-title--compact {
+    font-size: 11px;
+    margin: 0;
+}
+
+/* Полноширинная таблица с переносами, без горизонтальной прокрутки */
+.table-fullwrap {
+    width: 100%;
+    table-layout: fixed;
+    /* фиксируем ширины колонок, чтобы перенос работал предсказуемо */
+    font-size: 12px;
+    /* компактный шрифт; при желании 13–11px */
+}
+
+.table-fullwrap th,
+.table-fullwrap td {
+    padding: .5rem .5rem;
+    /* компактнее, чем по умолчанию */
+    white-space: normal;
+    /* многострочно */
+    overflow-wrap: anywhere;
+    /* переносим слова где угодно */
+    word-break: break-word;
+    /* старый синоним, на всякий случай */
+}

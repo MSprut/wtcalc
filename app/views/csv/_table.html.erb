@@ -1,0 +1,21 @@
+<% headers ||= [] %>
+<% rows    ||= [] %>
+
+<% if headers.present? && rows.present? %>
+  <table class="table table-sm table-striped table-hover table-bordered table-fullwrap">
+    <thead class="table-light">
+      <tr>
+        <% headers.each { |hcell| %><th><%= h(hcell.to_s) %></th><% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.each do |row| %>
+        <tr>
+          <% row.each { |cell| %><td><%= h(cell.to_s) %></td><% } %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="text-muted small">Нет данных</div>
+<% end %>

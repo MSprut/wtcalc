@@ -1,0 +1,15 @@
+<%#= turbo_stream.update "csv_flash" do %>
+  <%#= render "shared/flash" %>
+<%# end %>
+
+<%= turbo_stream.update "csv_table" do %>
+  <%= render partial: "csv/table", locals: { headers: @headers, rows: @rows } %>
+<% end %>
+
+<!-- turbo-stream action="update" target="csv_table">
+  <template>
+    <%#= render partial: "csv/table",
+               formats: [:html],
+               locals: { headers: @headers, rows: @rows } %>
+  </template>
+</turbo-stream-->

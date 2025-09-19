@@ -1,0 +1,72 @@
+# Dockerfile.dev
+FROM ruby:3.3.9-slim
+
+RUN set -eux; \
+  apt-get update -qq; \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  build-essential \
+  git \
+  pkg-config \
+  libpq-dev \
+  libyaml-dev \
+  postgresql-client \
+  nodejs \
+  npm \
+  ca-certificates \
+  gnupg \
+  curl \
+  ; rm -rf /var/lib/apt/lists/*
+
+# Yarn через corepack
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+
+WORKDIR /app
+
+ENV BUNDLE_PATH=/bundle \
+  BUNDLE_JOBS=4 \
+  BUNDLE_RETRY=3
+
+CMD bash -lc '\
+  rm -f tmp/pids/server.pid; \
+  until pg_isready -h "${DATABASE_HOST:-db}" -U "${DATABASE_USER:-postgres}" -d "${DATABASE_NAME:-app_development}"; do \
+  echo "[web] waiting for DB..."; sleep 2; \
+  done; \
+  bundle check || bundle install; \
+  [ -f package.json ] && (yarn install --frozen-lockfile || true); \
+  bundle exec rails db:prepare; \
+  bundle exec rails server -b 0.0.0.0 -p 3000 \
+  '
+
+
+
+# FROM ruby:3.3.9-slim
+
+# # Базовые пакеты и заголовки для сборки нативных gem'ов + Node.js для esbuild
+# RUN set -eux; \
+#   apt-get update -qq; \
+#   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+#   build-essential git pkg-config \
+#   libpq-dev libyaml-dev \
+#   nodejs npm curl ca-certificates gnupg \
+#   # полезно для healthcheck
+#   curl; \
+#   rm -rf /var/lib/apt/lists/*
+
+# # Yarn через corepack (не тянем лишние репозитории)
+# RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+
+# # Директория приложения
+# WORKDIR /app
+
+# # Опционально: ускорить bundle install в dev
+# ENV BUNDLE_PATH=/bundle \
+#   BUNDLE_JOBS=4 \
+#   BUNDLE_RETRY=3
+
+# # Если есть Gemfile — снимем слои для кеша bundle
+# # (можно оставить закомментированным, если монтируете код целиком)
+# # COPY Gemfile Gemfile.lock ./
+# # RUN bundle install
+
+# # Убираем stale pid, чтобы сервер поднимался
+# CMD bash -lc 'rm -f tmp/pids/server.pid; bundle check || bundle install; bin/rails db:prepare; bin/rails server -b 0.0.0.0 -p 3000'

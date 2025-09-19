@@ -1,0 +1,42 @@
+# Nginx server for a single FQDN and changeable upstream IP/port.
+# Set SERVER_NAME to your subdomain (e.g., wtcalc.example.com).
+# Set UPSTREAM_HOST to an IP (or hostname) and UPSTREAM_PORT to app port.
+
+user  nginx;
+worker_processes  auto;
+
+events { worker_connections  1024; }
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+  sendfile      on;
+  tcp_nopush    on;
+  tcp_nodelay   on;
+  keepalive_timeout  65;
+
+  # Optional: trust real client IP from your LB/VPN, injected by entrypoint if set.
+  __REAL_IP_BLOCK__
+
+  server {
+    listen 80;
+    server_name ${SERVER_NAME};
+
+    access_log /var/log/nginx/app_access.log;
+    error_log  /var/log/nginx/app_error.log;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml text/plain;
+    gzip_vary on;
+
+    location / {
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_read_timeout 300;
+      proxy_pass http://$UPSTREAM_HOST:$UPSTREAM_PORT;
+    }
+  }
+}

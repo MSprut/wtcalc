@@ -1,0 +1,36 @@
+    <div class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+      <div class="card shadow-sm border-0" style="max-width: 640px; width: 100%;">
+        <div class="card-header text-center fw-semibold <%= @status == 'ok' ? 'text-bg-success' : 'text-bg-danger' %>">
+          <%= @status == 'ok' ? '✅ Всё работает' : '❌ Проблемы' %>
+        </div>
+
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between">
+            <h2 class="h5 mb-0">Состояние сервиса</h2>
+            <span class="badge rounded-pill <%= @status == 'ok' ? 'text-bg-success' : 'text-bg-danger' %>">
+              <%= @status %>
+            </span>
+          </div>
+
+          <hr class="my-3">
+
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>PostgreSQL</strong>
+                <% unless @db_status %>
+                  <div class="small text-muted mt-1"><%= h(@db_error) %></div>
+                <% end %>
+              </div>
+              <span class="badge rounded-pill <%= @db_status ? 'text-bg-success' : 'text-bg-danger' %>">
+                <%= @db_status ? 'OK' : 'Error' %>
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-footer text-center text-muted small">
+          <%= Time.current.to_formatted_s(:db) %>
+        </div>
+      </div>
+    </div>
