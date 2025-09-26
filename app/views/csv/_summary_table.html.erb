@@ -1,0 +1,48 @@
+<% headers = ["Фирма","Подразделение","Сотрудник","Должность","Таб. №","Дата и время","Направление","Дверь","Комментарий","Расчет ведется","Зона доступа"] %>
+
+<% if passes.present? %>
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <%= raw pagy_info(pagy) %>
+  <%= raw pagy_bootstrap_nav(pagy, link_extra: 'data-turbo-frame="csv_table"') %>
+</div>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle" style="font-size:12px; table-layout:fixed; width:100%;">
+      <thead class="table-light">
+        <tr>
+          <% headers.each do |h| %><th class="text-nowrap"><%= h %></th><% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% passes.each do |p| %>
+          <% div = p.user.user_division_memberships.active_at(p.happened_at).first&.division %>
+          <% company_name = div&.companies&.first&.name %>
+          <% tabno = p.user.personal_identifier_assignments
+                      .active_at(p.happened_at)
+                      .includes(:personal_identifier)
+                      .first&.personal_identifier&.normalized_value %>
+
+          <tr style="word-break:break-word; white-space:normal;">
+            <td><%= (p.raw&.[]("Фирма") || company_name).to_s %></td>
+            <td><%= (p.raw&.[]("Подразделение") || div&.name).to_s %></td>
+            <td><%= [p.user.last_name, p.user.first_name, p.user.middle_name].compact_blank.join(" ") %></td>
+            <td><%= p.user.position.to_s %></td>
+            <td><%= tabno.to_s %></td>
+            <td><%= l(p.happened_at, format: "%d.%m.%Y %H:%M:%S") %></td>
+            <td><%= p.direction == "in" ? "Вход" : (p.direction == "out" ? "Выход" : p.direction.to_s) %></td>
+            <td><%= p.door.to_s %></td>
+            <td><%= p.comment.to_s %></td>
+            <td><%= p.calculation_basis.to_s %></td>
+            <td><%= p.zone.to_s %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-2 d-flex justify-content-end">
+    <%= raw pagy_bootstrap_nav(pagy, link_extra: 'data-turbo-frame="csv_table"') %>
+  </div>
+<% else %>
+  <div class="text-muted small">Нет данных</div>
+<% end %>

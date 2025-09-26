@@ -1,0 +1,29 @@
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="small text-muted"><%= raw pagy_info(pagy) if defined?(pagy) %></div>
+  <div><%= raw pagy_bootstrap_nav(pagy, link_extra: 'data-turbo-frame="worktime_frame"') if defined?(pagy) %></div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-sm table-striped align-middle" style="font-size:12px;">
+    <thead class="table-light">
+      <tr>
+        <th>Сотрудник</th>
+        <th class="text-end">Часы (итого)</th>
+        <th class="text-end">Дней</th>
+        <th class="text-end" style="width:140px;">Обед (мин)</th>
+      </tr>
+    </thead>
+    <%# <tbody> %>
+      <% stats.each do |row| %>
+  <tbody id="<%= dom_id(row[:user], :rows) %>"
+         data-lb-id="<%= dom_id(row[:user], :lb) %>">
+    <%= render "worktime/user_row", row: row, date_from: date_from, date_to: date_to %>
+  </tbody>
+<% end %>
+    <%# </tbody> %>
+  </table>
+</div>
+
+<div class="d-flex justify-content-end">
+  <%= raw pagy_bootstrap_nav(pagy, link_extra: 'data-turbo-frame="worktime_frame"') if defined?(pagy) %>
+</div>

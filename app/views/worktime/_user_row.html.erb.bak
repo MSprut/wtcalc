@@ -1,0 +1,39 @@
+<% u = row[:user] %>
+<tr id="<%= dom_id(u, :row) %>">
+  <td>
+    <%= [u.last_name,u.first_name,u.middle_name].compact_blank.join(' ') %>
+  </td>
+  <td class="text-end"><%= number_with_precision(row[:hours].to_f, precision: 2) %></td>
+  <td class="text-end"><%= row[:days].to_i %></td>
+  <td class="text-end">
+    <%= form_with url: user_lunch_break_default_path(u),
+              method: :patch, data: { turbo: true },
+              class: "d-inline-flex gap-2 align-items-center" do %>
+      <%= hidden_field_tag :date_from, @date_from %>
+      <%= hidden_field_tag :date_to,   @date_to %>
+      <%= hidden_field_tag :user_id,   @user_id %>
+
+  <span class="text-muted small">дефолт:</span>
+  <%= number_field_tag "lunch_break[minutes]", user_default_lunch_minutes(u),
+        min: 0, step: 5, class: "form-control form-control-sm text-end", style: "width: 80px" %>
+  <button class="btn btn-outline-secondary btn-sm" type="submit">OK</button>
+<% end %>
+
+    <button class="btn btn-link btn-sm p-0 ms-2"
+            data-bs-toggle="collapse"
+            data-bs-target="<%= "##{dom_id(u, :lb)}" %>">Дни</button>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="4" class="p-0">
+    <div id="<%= dom_id(u, :lb) %>" class="collapse">
+      <turbo-frame id="<%= dom_id(u, :lunch_days) %>">
+  <%= render "lunch_breaks/user_days",
+        user: u,
+        date_from: @date_from,
+        date_to:   @date_to %>
+</turbo-frame>
+    </div>
+  </td>
+</tr>
