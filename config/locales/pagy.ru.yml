@@ -1,0 +1,10 @@
+ru:
+  pagy:
+    nav:
+      prev: "&laquo; Назад"
+      next: "Вперёд &raquo;"
+      gap: "&hellip;"
+    info:
+      no_items: "Нет записей"
+      single_page: "Показаны %{count} записи"
+      multiple_pages: "Показаны %{from}-%{to} из %{count}"

@@ -1,0 +1,9 @@
+<turbo-frame id="worktime_frame">
+  <%= render "worktime/summary_cards", stats: stats %>
+  <%= render "worktime/chart", series: series, date_from: date_from, date_to: date_to %>
+  <%= render "worktime/table", pagy: pagy, stats: stats, date_from: date_from, date_to: date_to %>
+</turbo-frame>
+
+<%#= render "worktime/summary_cards", stats: stats %>
+<%#= render "worktime/chart", series: series, date_from: date_from, date_to: date_to %>
+<%#= render "worktime/table", pagy: pagy, stats: stats %>

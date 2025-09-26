@@ -1,0 +1,2 @@
+class CompanyDivision < ApplicationRecord
+end

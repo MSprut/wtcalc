@@ -6,11 +6,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app_development
+      POSTGRES_DB: wtcalc_dev
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d app_development" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d wtcalc_dev" ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -29,8 +29,8 @@ services:
       DATABASE_HOST: db
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
-      DATABASE_NAME: app_development
-      DATABASE_URL: postgres://postgres:postgres@db:5432/app_development
+      DATABASE_NAME: wtcalc_dev
+      DATABASE_URL: postgres://postgres:postgres@db:5432/wtcalc_dev
       RAILS_LOG_TO_STDOUT: "1"
       NODE_ENV: development
     depends_on:

@@ -1,0 +1,32 @@
+<div class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+      <div class="card shadow-sm border-0" style="max-width: 420px; width: 100%;">
+        <div class="card-header text-center fw-semibold">Вход</div>
+        <div class="card-body">
+          <% if flash.any? %>
+            <% flash.each do |type, msg| %>
+              <% cls = (type.to_s == "notice" ? "success" : "danger") %>
+              <div class="alert alert-<%= cls %> py-2 mb-3"><%= msg %></div>
+            <% end %>
+          <% end %>
+
+          <%= form_with url: login_path, method: :post, class: "vstack gap-3" do |f| %>
+            <div>
+              <label class="form-label">Логин или персональный номер</label>
+              <%= text_field_tag :login, params[:login], class: "form-control", autofocus: true, autocomplete: "username" %>
+            </div>
+
+            <div>
+              <label class="form-label">PIN</label>
+              <%= password_field_tag :pin, nil, class: "form-control", inputmode: "numeric", autocomplete: "current-password" %>
+            </div>
+
+            <div class="d-grid">
+              <%= submit_tag "Войти", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+        <div class="card-footer text-center text-muted small">
+          <%= Time.current.to_s(:db) %>
+        </div>
+      </div>
+    </div>

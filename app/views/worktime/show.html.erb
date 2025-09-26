@@ -1,0 +1,53 @@
+<div class="container py-3">
+  <h1 class="h5 mb-3">Расчёт рабочего времени</h1>
+
+  <div class="row g-3">
+    <aside class="col-lg-3">
+      <div class="card" style="position:sticky; top:1rem;">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Фильтр</h2>
+
+          <%= form_with url: worktime_path, method: :get, data: { turbo_frame: "worktime_frame" } do %>
+            <div class="mb-2">
+              <label class="form-label small">Сотрудник</label>
+              <%= select_tag :user_id,
+                    options_from_collection_for_select(User.order(:last_name,:first_name), :id, ->(u){ [u.last_name,u.first_name,u.middle_name].compact_blank.join(' ') }, @user_id),
+                    include_blank: "Все",
+                    class: "form-select form-select-sm" %>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Период</label>
+              <div class="d-flex flex-column gap-2">
+                <%= date_field_tag :date_from, @date_from, class: "form-control form-control-sm" %>
+                <%= date_field_tag :date_to,   @date_to,   class: "form-control form-control-sm" %>
+              </div>
+            </div>
+            <div class="d-grid mt-2">
+              <%= submit_tag "Применить", class: "btn btn-primary btn-sm" %>
+            </div>
+          <% end %>
+
+          <hr class="my-3">
+          <div id="lb_flash"></div>
+          <%= form_with url: global_lunch_breaks_path, method: :patch, data: { turbo: true } do %>
+            <%= hidden_field_tag :date_from, @date_from %>
+            <%= hidden_field_tag :date_to,   @date_to %>
+            <%= hidden_field_tag :user_id,   @user_id %>
+
+            <label class="form-label small">Глобальный обед (мин)</label>
+            <div class="input-group input-group-sm">
+              <%= number_field_tag "lunch_break[minutes]", global_lunch_minutes, min: 0, step: 5, class: "form-control" %>
+              <button class="btn btn-outline-secondary" type="submit">Сохранить</button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </aside>
+
+    <section class="col-lg-9">
+      <%# <turbo-frame id="worktime_frame"> %>
+        <%= render "worktime/frame", pagy: @pagy, stats: @stats_page, series: @series, date_from: @date_from, date_to: @date_to, user_id: @user_id %>
+      <%# </turbo-frame> %>
+    </section>
+  </div>
+</div>

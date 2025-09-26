@@ -1,8 +1,30 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   # get "csv/index"
-  root "csv#index"
+  root 'csv#index'
   # post "/", to: "csv#index"
-  resources :csv, only: [ :index, :create ]
+  resources :csv, only: %i[index create]
+
+  resource :session, only: %i[new create destroy]
+  get  '/login',  to: 'sessions#new'
+  post '/login',  to: 'sessions#create'
+  delete '/logout', to: 'sessions#destroy'
+
+  resource :lunch_breaks, only: [] do
+    patch :global # PATCH /lunch_breaks/global
+  end
+
+  resources :users, only: [] do
+    resources :lunch_breaks, only: %i[create update], controller: 'user_lunch_breaks'
+    patch :lunch_break_default, to: 'user_lunch_breaks#default' # опционально: дефолт для пользователя
+  end
+
+  resource :worktime, only: [:show], controller: 'worktime' # GET /worktime
+  resources :users, only: [] do
+    patch :update_lunch_break, on: :member # PATCH /users/:id/update_lunch_break
+  end
+  # root 'worktime#show'
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -16,7 +38,7 @@ Rails.application.routes.draw do
   # Render dynamic PWA files from app/views/pwa/*
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  get "/health", to: "health#index"
+  get '/health', to: 'health#index'
   # Defines the root path route ("/")
   # root "posts#index"
 end

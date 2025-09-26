@@ -1,0 +1,7 @@
+<% flash.each do |type, msg| %>
+  <% cls = (type.to_s == "notice" ? "success" : "danger") %>
+  <div class="alert alert-<%= cls %> alert-dismissible fade show" role="alert">
+    <%= msg %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% end %>

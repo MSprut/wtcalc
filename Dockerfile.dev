@@ -28,7 +28,7 @@ ENV BUNDLE_PATH=/bundle \
 
 CMD bash -lc '\
   rm -f tmp/pids/server.pid; \
-  until pg_isready -h "${DATABASE_HOST:-db}" -U "${DATABASE_USER:-postgres}" -d "${DATABASE_NAME:-app_development}"; do \
+  until pg_isready -h "${DATABASE_HOST:-db}" -U "${DATABASE_USER:-postgres}" -d "${DATABASE_NAME:-wtcalc_dev}"; do \
   echo "[web] waiting for DB..."; sleep 2; \
   done; \
   bundle check || bundle install; \
