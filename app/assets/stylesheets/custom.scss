@@ -43,3 +43,13 @@
     word-break: break-word;
     /* старый синоним, на всякий случай */
 }
+
+#worktime_chart .chart-box {
+  height: 220px;           /* фиксируем высоту графика */
+  position: relative;      /* рекомендация chart.js */
+}
+#worktime_chart canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important; /* заполняем именно chart-box */
+}

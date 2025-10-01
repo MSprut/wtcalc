@@ -18,6 +18,7 @@ class WorktimeController < ApplicationController
     @stats = query.per_user_stats
     @pagy, @stats_page = pagy_array(@stats, items: 50)
     @series = query.daily_hours_series
+    pp "#{@stats_page}"
     respond_to do |f|
       f.html
       f.turbo_stream { render partial: 'worktime/frame', formats: [:html], locals: frame_locals }
