@@ -8,6 +8,10 @@ class LunchBreak < ApplicationRecord
 
   scope :global, -> { where(user_id: nil, on_date: nil) }
 
+  scope :for_range, ->(user_ids, from, to) { where(user_id: user_ids, on_date: from..to) }
+  scope :user_defaults, ->(user_ids) { where(user_id: user_ids, on_date: nil) }
+  scope :global_default, -> { find_by(user_id: nil, on_date: nil)&.minutes }
+
   def self.global_minutes
     global.first&.minutes.to_i
   end

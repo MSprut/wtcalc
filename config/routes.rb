@@ -24,6 +24,9 @@ Rails.application.routes.draw do
   resources :users, only: [] do
     patch :update_lunch_break, on: :member # PATCH /users/:id/update_lunch_break
   end
+
+  get 'worktime/users/:user_id/days', to: 'worktime#days', as: :worktime_user_days
+
   # root 'worktime#show'
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

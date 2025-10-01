@@ -84,4 +84,10 @@ Rails.application.configure do
   config.hosts << 'wtcalc.example.com'
   # и на всякий случай, если ходишь напрямую:
   config.hosts << 'web'
+
+  config.after_initialize do
+    Bullet.enable = true
+    Bullet.rails_logger = true
+    Bullet.add_footer   = true
+  end
 end

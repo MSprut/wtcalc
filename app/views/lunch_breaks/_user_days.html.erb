@@ -1,4 +1,4 @@
-<% days = (date_from..date_to).to_a %>
+<%# days = (date_from..date_to).to_a %>
 <div class="table-responsive">
   <table class="table table-sm align-middle mb-0" style="font-size:12px;">
     <thead class="table-light">
@@ -9,7 +9,13 @@
       </tr>
     </thead>
     <tbody>
+      <% days ||= (date_from..date_to).to_a %>  <!-- если в локалях не передали days -->
+      <% lb_map          = @lb_map          || {} %>
+      <% lb_user_default = @lb_user_default || {} %>
+      <% lb_global_default   = @lb_global_default %>
+
       <% days.each do |day| %>
+        <% minutes = (lb_map[[user.id, day]] || lb_user_default[user.id] || lb_global_default || 0) %>
         <tr>
           <td class="nowrap"><%= l(day) %></td>
           <td>
@@ -17,7 +23,12 @@
                               date_from: date_from, date_to: date_to, user_id: user.id),
                           method: :post, format: :turbo_stream, data: { turbo: true, controller: "lunch", action: "turbo:submit-end->lunch#afterSave" },
                           class: "d-flex justify-content-end gap-2" do %>
-              <%= number_field_tag "lunch_break[minutes]", lunch_minutes_for(user, day),
+              <%= hidden_field_tag :on_date, day %>
+              <%= hidden_field_tag :date_from, date_from %>
+              <%= hidden_field_tag :date_to,   date_to %>
+              <%= hidden_field_tag :filter_user_id, params[:filter_user_id] %>
+
+              <%= number_field_tag "lunch_break[minutes]", minutes,
                     min: 0, step: 5, class: "form-control form-control-sm text-end", style: "max-width: 90px" %>
               <button class="btn btn-outline-secondary btn-sm" type="submit">OK</button>
             <% end %>

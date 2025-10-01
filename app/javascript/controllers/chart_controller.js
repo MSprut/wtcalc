@@ -10,15 +10,15 @@ export default class extends Controller {
     this.destroy()
 
     // помощник: сдвиг ISO-даты на ±N дней без головной боли с часовыми поясами
-function shiftDay(iso /* 'YYYY-MM-DD' */, delta) {
-  const [y, m, d] = iso.split("-").map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d))
-  dt.setUTCDate(dt.getUTCDate() + delta)
-  const yy = dt.getUTCFullYear()
-  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0")
-  const dd = String(dt.getUTCDate()).padStart(2, "0")
-  return `${yy}-${mm}-${dd}`
-}
+// function shiftDay(iso /* 'YYYY-MM-DD' */, delta) {
+//   const [y, m, d] = iso.split("-").map(Number)
+//   const dt = new Date(Date.UTC(y, m - 1, d))
+//   dt.setUTCDate(dt.getUTCDate() + delta)
+//   const yy = dt.getUTCFullYear()
+//   const mm = String(dt.getUTCMonth() + 1).padStart(2, "0")
+//   const dd = String(dt.getUTCDate()).padStart(2, "0")
+//   return `${yy}-${mm}-${dd}`
+// }
 
     const raw = this.element.dataset.series || "[]"
     let data; try { data = JSON.parse(raw) } catch { return }
@@ -28,6 +28,8 @@ function shiftDay(iso /* 'YYYY-MM-DD' */, delta) {
 
     const startX = data[0]?.x, endX = data[data.length - 1]?.x
 
+    const showBaseline = this.element.dataset.chartBaseline === "true"
+    const baseline = 8
     // const left  = startX ? shiftDay(startX, -1) : undefined
     // const right = endX ? shiftDay(endX, +1) : undefined
 
@@ -40,7 +42,7 @@ function shiftDay(iso /* 'YYYY-MM-DD' */, delta) {
         datasets: [
           { type: "bar",  label: "часы (день)", data, yAxisID: "y",
             borderWidth: 0, barPercentage: 0.8, categoryPercentage: 0.8,
-            backgroundColor: "rgba(121, 196, 247, 0.6)", order: 2 },
+            backgroundColor: "rgba(80, 181, 248, 0.6)", order: 2 },
           { type: "line", label: `среднее (${data.length}д)`, data: avg, yAxisID: "y",
             borderWidth: 2, pointRadius: 0, tension: 0.3, borderColor: "#0c8fcc",
             backgroundColor: "#0c8fcc", order: 1 },
@@ -58,19 +60,20 @@ function shiftDay(iso /* 'YYYY-MM-DD' */, delta) {
         interaction: { mode: "index", intersect: false },
         plugins: {
           legend: { display: true, position: "top" },
-          annotation: {
-            annotations: {
-              norm: {
-                type: "line",
-                yMin: 8, yMax: 8,              // горизонталь на уровне 8 ч
-                borderColor: "#ef4444", borderWidth: 2,
-                borderDash: [6, 4],
-                drawTime: "afterDatasetsDraw",               // поверх баров/линий
-                label: { enabled: true, content: "8ч", position: "end", color: "#ef4444",
-                        backgroundColor: "transparent" }
+          ...(showBaseline ? { annotation: {
+              annotations: {
+                norm: {
+                  type: "line",
+                  yMin: baseline, yMax: baseline,              // горизонталь на уровне 8 ч
+                  borderColor: "#ef4444", borderWidth: 2,
+                  borderDash: [10, 6],
+                  drawTime: "afterDatasetsDraw",               // поверх баров/линий
+                  label: { enabled: true, content: "8ч", position: "end", color: "#ef4444",
+                          backgroundColor: "transparent" }
+                }
               }
             }
-          }
+          } : {})
         }
       }
     })

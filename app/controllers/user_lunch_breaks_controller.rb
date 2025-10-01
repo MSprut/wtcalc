@@ -127,7 +127,7 @@ class UserLunchBreaksController < ApplicationController
   #   else
   #     # HTML фолбэк
   #     redirect_to worktime_path(
-  #       date_from: @date_from, date_to: @date_to, user_id: params[:user_id].presence
+  #       date_from: @date_from, date_to: @date_to, user_id: params[:filter_user_id].presence
   #     ), notice: 'Сохранено'
   #   end
   # end

@@ -17,11 +17,11 @@ export default class extends Controller {
     const fd = new FormData(this.element)
     const url = new URL(window.location)
     const p = url.searchParams
-    const df = fd.get("date_from"), dt = fd.get("date_to"), uid = fd.get("user_id")
+    const df = fd.get("date_from"), dt = fd.get("date_to"), uid = fd.get("filter_user_id")
 
     if (df) p.set("date_from", df)
     if (dt) p.set("date_to", dt)
-    if (uid && uid.length > 0) p.set("user_id", uid); else p.delete("user_id")
+    if (uid && uid.length > 0) p.set("filter_user_id", uid); else p.delete("filter_user_id")
 
     history.replaceState({}, "", `${url.pathname}?${p.toString()}`)
   }
