@@ -73,9 +73,16 @@ class UserLunchBreaksController < ApplicationController
     )
     streams << turbo_stream.replace(
       'worktime_chart',
-      partial: 'worktime/chart', formats: [:html],
+      partial: 'worktime/chart',
+      formats: [:html],
       locals: { series: @series, date_from: @date_from, date_to: @date_to }
     )
+
+    # streams << turbo_stream.replace(
+    #   'worktime_chart',
+    #   partial: 'worktime/chart', formats: [:html],
+    #   locals: { series: @series, date_from: @date_from, date_to: @date_to }
+    # )
 
     if row
       # 2) обновляем только числа в строке

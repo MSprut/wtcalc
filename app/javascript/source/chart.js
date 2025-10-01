@@ -24,7 +24,8 @@ function initCanvas(el) {
   let bars;
   try { bars = JSON.parse(json); } catch (e) { console.error("[chart] bad JSON", e, json); return; }
   const line = movingAverage(bars, 7);
-
+  const base = bars.map(p => ({ x: p.x, y: 8 }))
+console.log(base)
   // уничтожим, если по какой-то причине есть старый
   if (el._chart) { try { el._chart.destroy(); } catch (_) {} }
 
@@ -38,7 +39,11 @@ function initCanvas(el) {
         { type: "bar",  label: "часы (день)", data: bars, yAxisID: "y",
           borderWidth: 0, barPercentage: 0.8, categoryPercentage: 0.8 },
         { type: "line", label: "среднее (7д)", data: line, yAxisID: "y",
-          borderWidth: 2, pointRadius: 0, tension: 0.3 }
+          borderWidth: 2, pointRadius: 0, tension: 0.3, borderColor: "#035d99ff" },
+        { type: "line", label: "8ч", data: base, yAxisID: "y",
+          borderColor: "#ef4444", borderWidth: 2, pointRadius: 0, tension: 0,
+          borderDash: [6, 4]
+        }
       ]
     },
     options: {

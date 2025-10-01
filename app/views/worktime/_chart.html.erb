@@ -8,8 +8,11 @@
     <% points = Array(series).map { |d| { x: d[:date], y: d[:hours].to_f } } %>
 
     <% if points.present? %>
-      <canvas height="140"
-              data-series="<%= points.to_json %>"></canvas>
+      <div class="chart-box">
+        <canvas height="140"
+                data-controller="chart"
+                data-series="<%= points.to_json %>"></canvas>
+      </div>
     <% else %>
       <div class="text-muted small">Нет данных за выбранный период</div>
     <% end %>
