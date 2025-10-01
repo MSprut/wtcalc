@@ -14,7 +14,7 @@
         <tr>
           <td class="nowrap"><%= l(day) %></td>
           <td>
-            <%= form_with url: user_lunch_breaks_path(user, on_date: day, date_from: date_from, date_to: date_to, user_id: params[:user_id] || nil),
+            <%= form_with url: user_lunch_breaks_path(user, on_date: day, date_from: date_from, date_to: date_to, user_id: params[:filter_user_id] || nil),
                           method: :post, data: { turbo: true },
                           class: "d-flex justify-content-end gap-2" do %>
               <%= number_field_tag "lunch_break[minutes]", lunch_minutes_for(user, day),

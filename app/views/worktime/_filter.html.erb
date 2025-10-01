@@ -1,0 +1,33 @@
+<%= form_with url: worktime_path,
+              method: :get,
+              data: { controller: "autosubmit",
+                      action: "turbo:submit-end->autosubmit#done" ,
+                      turbo_frame: "worktime_frame" },   # перерисовать только frame
+              class: "row g-2 align-items-end" do %>
+
+  <div class="col-auto">
+    <%= label_tag :filter_user_id, "Сотрудник", class: "form-label mb-1" %>
+    <%= select_tag :filter_user_id,
+          options_from_collection_for_select(@users_all, :id, :full_name, params[:filter_user_id]),
+          include_blank: "Все",
+          class: "form-select form-select-sm",
+          data: { action: "change->autosubmit#submit" } %>
+  </div>
+
+  <div class="col-auto">
+    <%= label_tag :date_from, "С", class: "form-label mb-1" %>
+    <%= date_field_tag :date_from, params[:date_from],
+          class: "form-control form-control-sm",
+          data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
+  </div>
+
+  <div class="col-auto">
+    <%= label_tag :date_to, "По", class: "form-label mb-1" %>
+    <%= date_field_tag :date_to, params[:date_to],
+          class: "form-control form-control-sm",
+          data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
+  </div>
+
+  <%# Невидимая кнопка — на случай отключённого JS/доступности %>
+  <button type="submit" class="btn btn-primary btn-sm d-none">Применить</button>
+<% end %>

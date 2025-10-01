@@ -7,9 +7,10 @@
     <%= form_with url: lunch_break_default_user_path(u),
                   method: :patch, format: :turbo_stream, data: { turbo: true, controller: "lunch", action: "turbo:submit-end->lunch#afterSave" },
                   class: "d-inline-flex gap-2 align-items-center" do %>
-      <%= hidden_field_tag :date_from, @date_from %>
-      <%= hidden_field_tag :date_to,   @date_to %>
-      <%= hidden_field_tag :user_id,   @user_id %>
+      <%= hidden_field_tag :on_date, day %>
+      <%= hidden_field_tag :date_from, date_from %>
+      <%= hidden_field_tag :date_to,   date_to %>
+      <%= hidden_field_tag :filter_user_id, params[:filter_user_id] %>
       <span class="text-muted small">дефолт:</span>
       <%= number_field_tag "lunch_break[minutes]", user_default_lunch_minutes(u),
             min: 0, step: 5, class: "form-control form-control-sm text-end", style: "width: 80px" %>

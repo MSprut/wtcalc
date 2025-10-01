@@ -4,7 +4,7 @@
 <% employees   = stats.size %>
 <div class="row g-2 mb-3">
   <div class="col-sm-4">
-    <div class="card border-0 shadow-sm">
+    <div class="card border-1 shadow-sm">
       <div class="card-body py-2">
         <div class="small text-muted">Сотрудников</div>
         <div class="h5 mb-0"><%= employees %></div>
@@ -12,7 +12,7 @@
     </div>
   </div>
   <div class="col-sm-4">
-    <div class="card border-0 shadow-sm">
+    <div class="card border-1 shadow-sm">
       <div class="card-body py-2">
         <div class="small text-muted">Сумма часов</div>
         <div class="h5 mb-0"><%= number_with_precision(total_hours, precision: 2) %> ч</div>

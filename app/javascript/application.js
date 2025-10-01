@@ -42,11 +42,11 @@ document.addEventListener("turbo:submit-end", (e) => {
 
   const df = fd.get("date_from");
   const dt = fd.get("date_to");
-  const uid = fd.get("user_id");
+  const uid = fd.get("filter_user_id");
 
   if (df) p.set("date_from", df);
   if (dt) p.set("date_to", dt);
-  if (uid && String(uid).length > 0) p.set("user_id", uid); else p.delete("user_id");
+  if (uid && String(uid).length > 0) p.set("filter_user_id", uid); else p.delete("filter_user_id");
 
   history.replaceState({}, "", `${url.pathname}?${p.toString()}`);
 });

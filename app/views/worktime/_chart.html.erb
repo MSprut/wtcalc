@@ -11,6 +11,7 @@
       <div class="chart-box">
         <canvas height="140"
                 data-controller="chart"
+                data-chart-baseline="<%= params[:filter_user_id].present? %>"
                 data-series="<%= points.to_json %>"></canvas>
       </div>
     <% else %>

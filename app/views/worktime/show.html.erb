@@ -7,23 +7,24 @@
         <div class="card-body">
           <h2 class="h6 mb-3">Фильтр</h2>
 
-          <%= form_with url: worktime_path, method: :get, data: { turbo_frame: "worktime_frame" } do %>
+          <%= form_with url: worktime_path, method: :get, data: { controller: "autosubmit",
+                      action: "turbo:submit-end->autosubmit#done" ,turbo_frame: "worktime_frame" } do %>
             <div class="mb-2">
               <label class="form-label small">Сотрудник</label>
-              <%= select_tag :user_id,
-                    options_from_collection_for_select(User.order(:last_name,:first_name), :id, ->(u){ [u.last_name,u.first_name,u.middle_name].compact_blank.join(' ') }, @user_id),
+              <%= select_tag :filter_user_id,
+                    options_from_collection_for_select(@users_all, :id, ->(u){ [u.last_name,u.first_name,u.middle_name].compact_blank.join(' ') }, @user_id),
                     include_blank: "Все",
-                    class: "form-select form-select-sm" %>
+                    class: "form-select form-select-sm", data: { action: "change->autosubmit#submit" } %>
             </div>
             <div class="mb-2">
               <label class="form-label small">Период</label>
               <div class="d-flex flex-column gap-2">
-                <%= date_field_tag :date_from, @date_from, class: "form-control form-control-sm" %>
-                <%= date_field_tag :date_to,   @date_to,   class: "form-control form-control-sm" %>
+                <%= date_field_tag :date_from, @date_from, class: "form-control form-control-sm", data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
+                <%= date_field_tag :date_to,   @date_to,   class: "form-control form-control-sm", data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
               </div>
             </div>
             <div class="d-grid mt-2">
-              <%= submit_tag "Применить", class: "btn btn-primary btn-sm" %>
+              <%#= submit_tag "Применить", class: "btn btn-primary btn-sm" %>
             </div>
           <% end %>
 

@@ -1,0 +1,6 @@
+<turbo-frame id="<%= dom_id(@user, :lunch_days) %>">
+  <%= render "lunch_breaks/user_days",
+             user: @user,
+             date_from: @date_from,
+             date_to: @date_to %>
+</turbo-frame>
