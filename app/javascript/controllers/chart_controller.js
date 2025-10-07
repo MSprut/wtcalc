@@ -29,28 +29,53 @@ export default class extends Controller {
     const startX = data[0]?.x, endX = data[data.length - 1]?.x
 
     const showBaseline = this.element.dataset.chartBaseline === "true"
-    const baseline = 8
-    // const left  = startX ? shiftDay(startX, -1) : undefined
-    // const right = endX ? shiftDay(endX, +1) : undefined
+    const baseline8 = 8
+    const baseline12 = 12
+    let showBaseline12 = false;
 
-    // const base = (left && right) ? [{ x: left, y: 8 }, { x: right, y: 8 }] : []
+    let base = data,
+        over = [],
+        gap = [];
+    
+    if (showBaseline) {
+      showBaseline12 = data.filter(p => { return p.y > baseline12 }).length > 0
+      base = data.map(p => ({ x: p.x, y: Math.min(p.y ?? 0, p.y > baseline12 ? baseline12 : baseline8) }))
+      over = data.map(p => ({ x: p.x, y: Math.max((p.y ?? 0) - (p.y > baseline12 ? baseline12 : baseline8), 0) }))
+      gap  = data.map(p => ({ x: p.x, y: Math.max((p.y > baseline12 ? baseline12 : baseline8) - (p.y ?? 0), 0) })) // опционально
+    }
 
-    // const base = (startX && endX) ? [{ x: startX, y: 8 }, { x: endX, y: 8 }] : []
+    const datasets = [
+      { type: "bar", label: "часы", data: base,
+        stack: "hours", yAxisID: "y", borderWidth: 0,
+        barPercentage: 0.8, categoryPercentage: 0.8,
+        backgroundColor: "rgba(73, 164, 224, 0.6)", order: 2 
+      },
+      { type: "line", label: `среднее (${data.length}д)`, data: avg, yAxisID: "y",
+        borderWidth: 2, pointRadius: 0, tension: 0.3, borderColor: "#0c8fcc",
+        backgroundColor: "#0c8fcc", order: 1
+      },
+    ]
 
+    if (showBaseline) {
+      datasets.push(
+          // включай этот датасет, если хочешь видеть «недобор»
+        { type: "bar", label: "недобор до 8", data: gap,
+          stack: "hours", yAxisID: "y", borderWidth: 0,
+          barPercentage: 0.8, categoryPercentage: 0.8,
+          backgroundColor: "#9fadc2ff", order: 2 /* приглушённый */
+        },
+        { type: "bar", label: "переработка", data: over,
+          stack: "hours", yAxisID: "y", borderWidth: 0,
+          barPercentage: 0.8, categoryPercentage: 0.8,
+          backgroundColor: "#f8c46b" /* жёлтый/оранжевый */,
+          order: 2 // поверх base/gap
+        },
+      )
+    }
+console.log(showBaseline12)
     this.chart = new Chart(this.element.getContext("2d"), {
       data: {
-        datasets: [
-          { type: "bar",  label: "часы (день)", data, yAxisID: "y",
-            borderWidth: 0, barPercentage: 0.8, categoryPercentage: 0.8,
-            backgroundColor: "rgba(80, 181, 248, 0.6)", order: 2 },
-          { type: "line", label: `среднее (${data.length}д)`, data: avg, yAxisID: "y",
-            borderWidth: 2, pointRadius: 0, tension: 0.3, borderColor: "#0c8fcc",
-            backgroundColor: "#0c8fcc", order: 1 },
-          // { type: "line", label: "8ч", data: base, yAxisID: "y",
-          //   borderColor: "#ef4444", borderWidth: 2, pointRadius: 0, tension: 0,
-          //   borderDash: [6, 4], order: 0
-          // }
-        ]
+        datasets: datasets
       },
       options: {
         parsing: { xAxisKey: "x", yAxisKey: "y" },
@@ -62,15 +87,25 @@ export default class extends Controller {
           legend: { display: true, position: "top" },
           ...(showBaseline ? { annotation: {
               annotations: {
-                norm: {
+                norm8: {
                   type: "line",
-                  yMin: baseline, yMax: baseline,              // горизонталь на уровне 8 ч
+                  yMin: baseline8, yMax: baseline8,              // горизонталь на уровне 8 ч
                   borderColor: "#ef4444", borderWidth: 2,
-                  borderDash: [10, 6],
+                  borderDash: [15, 10],
                   drawTime: "afterDatasetsDraw",               // поверх баров/линий
                   label: { enabled: true, content: "8ч", position: "end", color: "#ef4444",
-                          backgroundColor: "transparent" }
+                          backgroundColor: "transparent", order: 0 }
+                },
+                ...(showBaseline12 ? { norm12: {
+                  type: "line",
+                  yMin: baseline12, yMax: baseline12,              // горизонталь на уровне 8 ч
+                  borderColor: "#ef4444", borderWidth: 2,
+                  borderDash: [15, 10],
+                  drawTime: "afterDatasetsDraw",               // поверх баров/линий
+                  label: { enabled: true, content: "12ч", position: "end", color: "#ef4444",
+                          backgroundColor: "transparent", order: 0 }
                 }
+              } : {})
               }
             }
           } : {})

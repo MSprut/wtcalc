@@ -1,20 +1,35 @@
 <div class="container-fluid py-3">
+  <div class="d-flex gap-2 mb-3">
+    <%= button_to "Удалить последний импорт",
+          destroy_last_import_files_path,
+          method: :delete,
+          class: "btn btn-outline-danger btn-sm",
+          form: { data: { turbo_confirm: "Удалить все из последнего импорта?" } } %>
+
+    <%#= link_to "История импортов", import_files_path, class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+
   <h1 class="h5 mb-3">CSV импорт</h1>
 
   <div id="csv_flash">
     <%= render "shared/flash" %>
   </div>
 
-  <%= form_with url: csv_index_path, multipart: true, data: { turbo_stream: true }, class: "row gy-2 gx-2 align-items-end" do %>
+  <%= form_with url: csv_index_path, multipart: true, data: { turbo_stream: true }, class: "row gy-2 gx-2 align-items-end mb-3" do %>
     <div class="col-auto">
       <label class="form-label mb-1">CSV-файл</label>
       <%= file_field_tag :file, accept: ".csv", class: "form-control form-control-sm" %>
     </div>
+
     <div class="col-auto">
       <%= submit_tag "Загрузить", class: "btn btn-primary btn-sm mt-3" %>
     </div>
   <% end %>
 
+  <% if params[:import_file_id].present? %>
+    <%= render "csv/progress_card", id: params[:import_file_id] %>
+  <% end %>
+  
   <div class="mt-4">
     <%= render "csv/table_frame", pagy: @pagy, passes: @passes %>
   </div>

@@ -3,7 +3,7 @@
 <%# end %>
 
 <%= turbo_stream.update "csv_flash", partial: "shared/flash" %>
-<%= turbo_stream.replace "csv_table", partial: "csv/summary_table", locals: { passes: @passes } %>
+<%= turbo_stream.replace "csv_table", partial: "csv/summary_table", locals: { pagy: @pagy, passes: @passes } %>
 
 <%#= turbo_stream.update "csv_table" do %>
   <%#= render partial: "csv/table", locals: { headers: @headers, rows: @rows } %>

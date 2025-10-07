@@ -4,7 +4,9 @@ Rails.application.routes.draw do
   # get "csv/index"
   root 'csv#index'
   # post "/", to: "csv#index"
-  resources :csv, only: %i[index create]
+  resources :csv, only: %i[index create] do
+    collection { get :table }
+  end
 
   resource :session, only: %i[new create destroy]
   get  '/login',  to: 'sessions#new'
@@ -15,18 +17,31 @@ Rails.application.routes.draw do
     patch :global # PATCH /lunch_breaks/global
   end
 
-  resources :users, only: [] do
+  resources :divisions, only: [:index] do
+  end
+
+  resources :users, only: [:index] do
     resources :lunch_breaks, only: %i[create update], controller: 'user_lunch_breaks'
     patch :lunch_break_default, to: 'user_lunch_breaks#default' # опционально: дефолт для пользователя
   end
 
-  resource :worktime, only: [:show], controller: 'worktime' # GET /worktime
+  resource :worktime, only: %i[show summary export], controller: 'worktime' do # GET /worktime
+    get :summary
+    get :export, to: 'worktime_exports#index'
+  end
+
   resources :users, only: [] do
     patch :update_lunch_break, on: :member # PATCH /users/:id/update_lunch_break
   end
 
   get 'worktime/users/:user_id/days', to: 'worktime#days', as: :worktime_user_days
+  # get 'worktime/export' => 'worktime_exports#index', as: :export_worktime
 
+  resources :import_files, only: %i[show index destroy] do
+    collection do
+      delete :destroy_last
+    end
+  end
   # root 'worktime#show'
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

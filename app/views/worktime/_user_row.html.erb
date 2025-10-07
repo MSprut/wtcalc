@@ -26,7 +26,7 @@
   <span class="text-muted small">дефолт:</span>
   <%= number_field_tag "lunch_break[minutes]", user_default_lunch_minutes(u),
         min: 0, step: 5, class: "form-control form-control-sm text-end", style: "width: 80px" %>
-  <button class="btn btn-outline-secondary btn-sm" type="submit">OK</button>
+  <button class="btn btn-outline-secondary btn-xs" type="submit">OK</button>
 <% end %>
 
     <button class="btn btn-link btn-sm p-0 ms-2"
@@ -41,7 +41,7 @@
       <turbo-frame id="<%= dom_id(u, :lunch_days) %>"
                    src="<%= worktime_user_days_path(u, date_from: date_from, date_to: date_to) %>">
         <!-- при первом показе можно оставить спиннер -->
-        <div class="text-muted small">Загрузка…</div>
+        <div class="text-muted small">Загрузка данных…</div>
         <%#= render "lunch_breaks/user_days", user: u, date_from: date_from, date_to: date_to %>
       </turbo-frame>
     </div>

@@ -1,0 +1,15 @@
+<div data-controller="progress"
+     data-progress-id-value="<%= id %>">
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <div><strong>Импорт:</strong> <span data-progress-target="name">—</span></div>
+        <div class="text-muted"><span data-progress-target="percent">0</span>%</div>
+      </div>
+      <div class="progress mt-2">
+        <div class="progress-bar" role="progressbar" style="width:0%" data-progress-target="bar"></div>
+      </div>
+      <div class="small text-muted mt-1" data-progress-target="status">Ожидание…</div>
+    </div>
+  </div>
+</div>

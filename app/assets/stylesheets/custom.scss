@@ -53,3 +53,35 @@
   width: 100% !important;
   height: 100% !important; /* заполняем именно chart-box */
 }
+
+.drag-handle { cursor: grab; user-select: none; opacity: .6 }
+
+.matrix-wrap { position: relative; }
+.matrix-wrap.is-scrollable { overflow-x: auto; }
+.matrix-table { width: 100%; table-layout: fixed; font-size: 12px; }
+.matrix-table th, .matrix-table td { padding: .25rem .35rem; }
+.matrix-table .drag-handle { cursor: grab; user-select: none; opacity: .6; }
+.matrix-table .name, .matrix-table .total, .matrix-table .delta { white-space: nowrap; }
+.matrix-table .date-th { writing-mode: vertical-rl; transform: rotate(200deg); white-space: nowrap; font-size: 11px; line-height: 1; }
+.table-row-ghost { background: rgba(0,0,0,.04) }
+
+.matrix-table col.col-name  { width: var(--name-w, 220px); }
+.matrix-table col.col-day   { width: var(--day-w, 32px); }
+.matrix-table col.col-total { width: var(--total-w, 72px); }
+.matrix-table col.col-delta { width: var(--delta-w, 64px); }
+
+// .matrix-table { font-size: 13px; }
+// .matrix-table th, .matrix-table td { padding: .25rem .35rem; }
+// .matrix-table .name { white-space: nowrap; max-width: 260px; }
+// .matrix-table .date-th { writing-mode: vertical-rl; transform: rotate(200deg); white-space: nowrap; font-size: 11px; line-height: 1; }
+// .matrix-table .date-col { width: 1%; text-align: center; }
+// .matrix-table .drag-handle { cursor: grab; user-select: none; opacity: .6; }
+// .table-row-ghost { background: rgba(0,0,0,.04); }
+.matrix-table td span.badge { font-size: 12px; }
+.matrix-table td.name, .matrix-table th.name {
+  position: sticky;
+  left: 0px; /*calc(var(--name-sticky-left, 0px) + 16px); /* 16px на ручку/паддинги */
+//   background: #fff;
+  z-index: 2;
+}
+@media (max-width: 1200px) { .matrix-table { font-size: 11px; } }

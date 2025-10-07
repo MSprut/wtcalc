@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_25_073854) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_06_085015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -48,6 +48,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_25_073854) do
     t.integer "rows_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "progress", default: 0, null: false
+    t.string "status", default: "Ожидание", null: false
     t.index ["checksum"], name: "index_import_files_on_checksum", unique: true
   end
 

@@ -59,6 +59,40 @@ class WorktimeQuery
     out.sort_by { |d, _| d }.map { |d, h| { date: d, hours: h.to_f.round(2) } }
   end
 
+  # [{ user:, per_day: { Date => Float }, total_hours: Float, overtime: Float, undertime: Float }]
+  def per_user_day_net_hours
+    raw = compute_user_day_raw_hours # { uid => { date => hours_raw } }
+    users = User.where(id: raw.keys).index_by(&:id)
+    out = []
+
+    raw.each do |uid, day_hash|
+      u = users[uid] or next
+      per_day = {}
+      day_hash.each do |day, raw_h|
+        lb_min = LunchBreak.for(u, day).to_i
+        net = [raw_h - (lb_min / 60.0), 0.0].max
+        per_day[day] = net
+      end
+
+      # для переработки/недоработки считаем по ФАКТИЧЕСКИМ часам (не по округлённым),
+      # как ты и просил в примере 7.7 -> недоработка 0.3
+      worked_days = per_day.select { |_, h| h.positive? }
+      overtime  = worked_days.values.sum { |h| [h - 8.0, 0.0].max }
+      undertime = worked_days.values.sum { |h| [8.0 - h, 0.0].max }
+
+      out << {
+        user: u,
+        per_day: per_day,
+        total_hours: per_day.values.sum,
+        overtime: overtime,
+        undertime: undertime
+      }
+    end
+
+    # упорядочим по ФИО
+    out.sort_by { |r| [r[:user].last_name.to_s, r[:user].first_name.to_s] }
+  end
+
   private
 
   # Возвращает «сырые» часы по дням и пользователям, без учёта обеда

@@ -1,0 +1,16 @@
+<div class="container-fluid py-3">
+  <h5 class="mb-3">История импортов</h5>
+
+<div class="d-flex gap-2 mb-3">
+  <%= button_to "Удалить последний импорт",
+        destroy_last_import_files_path,
+        method: :delete,
+        class: "btn btn-outline-danger btn-sm",
+        form: { data: { turbo_confirm: "Удалить все данные из последнего импорта?" } } %>
+  <%#= link_to "К CSV", csv_index_path, class: "btn btn-outline-secondary btn-sm" %>
+</div>
+
+<div class="mt-4">
+<%= render "import_files/table" %>
+</div>
+</div>

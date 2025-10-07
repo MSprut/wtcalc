@@ -1,0 +1,51 @@
+<div class="table-responsive">
+<table class="table table-sm table-striped table-hover align-middle"
+  style="font-size:14px; table-layout:fixed; width:100%;">
+  <thead class="table-light">
+    <tr>
+      <th>Файл</th>
+      <th class="text-nowrap text-end">Импортирован</th>
+      <th class="text-nowrap text-end">Строк</th>
+      <th class="text-nowrap text-end">Пропусков</th>
+      <th style="text-nowrap text-end">Статус / Прогресс</th>
+      <th class="text-nowrap text-end"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @import_files.each do |f| %>
+      <tr id="<%= dom_id(f) %>">
+        <td>
+          <div class="fw-semibold"><%= f.filename %></div>
+          <% if f.checksum.present? %>
+            <div class="text-muted small">SHA256: <%= f.checksum.first(12) %>…</div>
+          <% end %>
+        </td>
+        <td class="text-nowrap text-end"><%= tz(f.created_at, format: :short) %></td>
+        <td class="text-end"><%= number_with_delimiter(f.rows_count || 0) %></td>
+        <td class="text-end"><%= number_with_delimiter(f.try(:passes_count) || 0) %></td>
+        <td>
+          <div class="d-flex flex-column gap-1">
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar" role="progressbar"
+                   style="width:<%= (f.progress || 0) %>%;" aria-valuenow="<%= (f.progress || 0) %>"
+                   aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div>
+              <% s = f.status.to_s %>
+              <% klass = s.start_with?("Ошибка") ? "bg-danger" : (s=="Готово" ? "bg-success" : "bg-secondary") %>
+              <span class="badge <%= klass %>"><%= s.presence || "—" %></span>
+            </div>
+          </div>
+        </td>
+        <td class="text-end">
+          <%= button_to "Удалить",
+                import_file_path(f),
+                method: :delete,
+                class: "btn btn-outline-danger btn-sm",
+                form: { data: { turbo_confirm: "Удалить все данные из этого импорта?" } } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+</div>

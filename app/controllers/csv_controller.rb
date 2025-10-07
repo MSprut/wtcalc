@@ -9,26 +9,58 @@ class CsvController < ApplicationController
   def create
     return respond_with_error!('Выберите CSV-файл') if params[:file].blank?
 
-    upload  = params[:file]
-    result  = CsvImporter.new(upload, filename: upload.original_filename).call!
-    msg = "Импорт: строк=#{result[:rows]}, компаний+#{result[:companies_new]}, подразделений+#{result[:divisions_new]}, пользователей+#{result[:users_new]}, проходов=#{result[:passes]}"
-    flash.now[:notice] = msg
+    up = params.require(:file)
+    raw = up.read
+    checksum = Digest::SHA256.hexdigest(raw)
+
+    @import_file = ImportFile.find_or_initialize_by(checksum: checksum)
+    @import_file.filename = up.original_filename if @import_file.new_record?
+    @import_file.status   = 'В очереди'
+    @import_file.progress = 0
+    @import_file.save! # тут не упадёт: либо новая, либо обновление существующей
+
+    # @import_file = ImportFile.create!(filename: up.original_filename,
+    #                                   checksum: checksum,
+    #                                   status: 'В очереди',
+    #                                   progress: 0)
+
+    CsvImportJob.perform_later(@import_file.id, raw)
+
+    # Показать страницу с карточкой прогресса
+    redirect_to csv_index_path(import_file_id: @import_file.id), notice: 'Импорт запущен'
+    #   upload  = params[:file]
+    #   result  = CsvImporter.new(upload, filename: upload.original_filename).call!
+    #   msg = "Импорт: строк=#{result[:rows]}, компаний+#{result[:companies_new]}, подразделений+#{result[:divisions_new]}, пользователей+#{result[:users_new]}, проходов=#{result[:passes]}"
+    #   flash.now[:notice] = msg
+
+    #   @pagy, @passes = pagy(recent_passes)
+
+    #   respond_to do |f|
+    #     # f.turbo_stream { render turbo_stream: turbo_stream.update('csv_flash', partial: 'shared/flash') }
+    #     f.turbo_stream do
+    #       render turbo_stream: [
+    #         turbo_stream.update('csv_flash', partial: 'shared/flash'),
+    #         turbo_stream.replace('csv_table', partial: 'csv/summary_table', locals: { pagy: @pagy, passes: @passes })
+    #       ]
+    #     end
+    #     f.html { redirect_to root_path, notice: msg }
+    #   end
+    # rescue StandardError => e
+    #   Rails.logger.error(e.full_message)
+    #   respond_with_error!("Ошибка импорта: #{e.message}")
+  end
+
+  def table
+    # скопируй сюда тот же набор фильтров, что используешь в index,
+    # чтобы таблица собиралась одинаково:
+    # @passes, @pagy = WorktimeQuery.new(params).summary(...)
+    # либо твой текущий способ
 
     @pagy, @passes = pagy(recent_passes)
 
     respond_to do |f|
-      # f.turbo_stream { render turbo_stream: turbo_stream.update('csv_flash', partial: 'shared/flash') }
-      f.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.update('csv_flash', partial: 'shared/flash'),
-          turbo_stream.replace('csv_table', partial: 'csv/summary_table', locals: { passes: @passes })
-        ]
-      end
-      f.html { redirect_to root_path, notice: msg }
+      f.html { render partial: 'csv/summary_table', locals: { passes: @passes, pagy: @pagy } }
     end
-  rescue StandardError => e
-    Rails.logger.error(e.full_message)
-    respond_with_error!("Ошибка импорта: #{e.message}")
   end
 
   # def create
@@ -51,8 +83,10 @@ class CsvController < ApplicationController
   private
 
   def recent_passes
-    Pass.order(user_id: :asc) # order(happened_at: :desc).limit(300)
-        .includes(user: [:user_division_memberships, { personal_identifier_assignments: :personal_identifier }])
+    Pass.includes(:user) # : { user_division_memberships: { division: :companies } })
+        .order(user_id: :asc, happened_at: :asc) # order(happened_at: :desc).limit(300)
+    # .includes(:user) # [personal_identifier_assignments: :personal_identifier])
+    # .includes(user: [:user_division_memberships, { personal_identifier_assignments: :personal_identifier }])
   end
 
   def respond_ok

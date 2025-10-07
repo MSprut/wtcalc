@@ -1,0 +1,44 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-info border-bottom fixed-top">
+  <div class="container-fluid">
+    <%= link_to "WT Calc", root_path, class: "navbar-brand fw-semibold" %>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarMain" aria-controls="navbarMain"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <%= nav_item "Импорт CSV", csv_index_path, starts_with: [csv_index_path] %>
+        <%= nav_item "История импортов", import_files_path, starts_with: [import_files_path] %>
+        <%= nav_item "Рабочее время", worktime_path, starts_with: [worktime_path] %>
+        <%= nav_item "Сводка времени", summary_worktime_path, starts_with: [summary_worktime_path] %>
+        
+        <li class="nav-item dropdown">
+          <% drop_active = any_active?([users_path, divisions_path, health_path]) %>
+          <a class="nav-link dropdown-toggle <%= 'active' if drop_active %>" href="#" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            Еще
+          </a>
+          <ul class="dropdown-menu">
+            <!--li><%#= nav_dropdown_item "Импорт CSV", csv_index_path%></li-->
+            <li><%= nav_dropdown_item "Пользователи", users_path %></li>
+            <li><%= nav_dropdown_item "Подразделения", divisions_path %></li>
+            <li><%= nav_dropdown_item "Health", health_path %></li>
+          </ul>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <%# пример места под логин/выход, если нужно %>
+        <!--
+        <li class="nav-item"><%= link_to "Вход", new_session_path, class: "nav-link" %></li>
+        -->
+        <li class="nav-item">
+          <span class="navbar-text small text-muted"><%= l Date.current %></span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
