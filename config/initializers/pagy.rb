@@ -7,3 +7,4 @@ require 'pagy/extras/array'      # ← это нужно для pagy_array(...)
 # необязательно: trim убирает ?page=1
 # require "pagy/extras/trim"
 Pagy::DEFAULT[:items] = 50
+Pagy::I18n.load(locale: 'ru')

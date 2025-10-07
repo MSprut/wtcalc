@@ -1,0 +1,67 @@
+<% rws   = local_assigns[:rows]  || [] %>
+<% dates = local_assigns[:dates] || [] %>
+<% pgy   = local_assigns[:pagy] %>
+
+<div data-controller="matrix-fit"
+     data-matrix-fit-days-value="<%= dates.size %>"
+     class="matrix-wrap">
+
+<div class="table-responsive">
+<table class="table table-sm table-striped table-bordered border-secondary table-info table-hover align-middle matrix-table">
+  <colgroup>
+      <!--col--> <!-- ручка -->
+      <col class="col-name">
+      <% dates.each { %><col class="col-day"><% } %>
+      <col class="col-total">
+      <col class="col-delta">
+    </colgroup>
+  <thead class="table-light">
+    <tr>
+      <!--th style="width:1%"></th-->
+      <th class="name">Сотрудник</th>
+      <% dates.each do |d| %>
+        <th class="date-col"><span class="date-th"><%= l d, format: :xshort %></span></th>
+      <% end %>
+      <th class="text-end">Итого (ч)</th>
+      <th class="text-end">Δч</th>
+    </tr>
+  </thead>
+  <tbody
+    data-controller="reorder"
+    data-reorder-input-value="#wt_order"
+    data-reorder-storage-key-value="wt-matrix-<%= @date_from %>-<%= @date_to %>-<%= @user_id || 'all' %>">
+    <% rws.each do |r| %>
+      <% u = r[:user] %>
+      <% initials = [u.first_name, u.middle_name].compact.map { |x| x.to_s[0] }.join(".") %>
+      <tr data-user-id="<%= u.id %>">
+        <!--td class="text-muted text-center pe-0"><span class="drag-handle">⋮⋮</span></td-->
+        <td class="name">
+          <span class="drag-handle text-muted text-center pe-0">⋮⋮</span>
+          <%= "#{u.last_name} #{initials.present? ? initials + '.' : ''}" %>
+        </td>
+
+        <% dates.each do |d| %>
+          <% h = r[:per_day][d].to_f %>
+          <td class="text-center"><%= h.round > 0 ? h.round : "" %></td>
+        <% end %>
+
+        <td class="text-end fw-semibold"><%= number_with_precision(r[:total_hours], precision: 2) %></td>
+        <td class="text-end">
+          <% dlt = r[:delta].to_f %>
+          <% if dlt > 0 %>
+            <span class="badge bg-success-subtle text-success"><%= number_with_precision(dlt,  precision: 2) %></span>
+          <% elsif dlt < 0 %>
+            <span class="badge bg-danger-subtle text-danger">-<%= number_with_precision(-dlt, precision: 2) %></span>
+          <% else %>—<% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+</div>
+</div>
+<% if defined?(pagy_bootstrap_nav) && pgy %>
+  <div class="d-flex justify-content-end">
+    <%= raw pagy_bootstrap_nav(pgy) %>
+  </div>
+<% end %>

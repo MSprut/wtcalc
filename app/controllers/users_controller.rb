@@ -2,6 +2,9 @@
 
 class UsersController < ApplicationController
 
+  def index
+  end
+
   def update_lunch_break
     user = User.find(params[:id])
     minutes = params.require(:user).permit(:lunch_break_minutes)[:lunch_break_minutes].to_i

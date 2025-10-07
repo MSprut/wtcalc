@@ -1,33 +1,49 @@
-<%= form_with url: worktime_path,
-              method: :get,
-              data: { controller: "autosubmit",
-                      action: "turbo:submit-end->autosubmit#done" ,
-                      turbo_frame: "worktime_frame" },   # перерисовать только frame
-              class: "row g-2 align-items-end" do %>
+<aside class="col-lg-3">
+      <div class="card border-2 shadow-sm" style="position:sticky; top:1rem;">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Фильтр</h2>
 
-  <div class="col-auto">
-    <%= label_tag :filter_user_id, "Сотрудник", class: "form-label mb-1" %>
-    <%= select_tag :filter_user_id,
-          options_from_collection_for_select(@users_all, :id, :full_name, params[:filter_user_id]),
-          include_blank: "Все",
-          class: "form-select form-select-sm",
-          data: { action: "change->autosubmit#submit" } %>
-  </div>
+          <%= form_with url: (local_assigns[:action_path] || worktime_path), method: :get, data: { controller: "autosubmit",
+                      action: "change->autosubmit#submit" ,turbo_frame: "worktime_frame" } do %>
+            <%= hidden_field_tag :order, params[:order], id: "wt_order" %>
 
-  <div class="col-auto">
-    <%= label_tag :date_from, "С", class: "form-label mb-1" %>
-    <%= date_field_tag :date_from, params[:date_from],
-          class: "form-control form-control-sm",
-          data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
-  </div>
+            <div class="mb-2">
+              <label class="form-label small text-muted">Сотрудник</label>
+              <%= select_tag :filter_user_id,
+                    options_from_collection_for_select(@users_all, :id, ->(u){ [u.last_name,u.first_name,u.middle_name].compact_blank.join(' ') }, @user_id),
+                    include_blank: "Все",
+                    class: "form-select form-select-sm border-1 border-secondary",
+                    data: { action: "change->autosubmit#submit" } %>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small text-muted">Период</label>
+              <div class="d-flex flex-column gap-2">
+                <%= date_field_tag :date_from, @date_from,
+                  class: "form-control form-control-sm border-1 border-secondary",
+                  data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
+                <%= date_field_tag :date_to, @date_to,
+                  class: "form-control form-control-sm border-1 border-secondary",
+                  data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
+              </div>
+            </div>
+            <div class="d-grid mt-2">
+              <%#= submit_tag "Применить", class: "btn btn-primary btn-sm" %>
+            </div>
+          <% end %>
 
-  <div class="col-auto">
-    <%= label_tag :date_to, "По", class: "form-label mb-1" %>
-    <%= date_field_tag :date_to, params[:date_to],
-          class: "form-control form-control-sm",
-          data: { action: "change->autosubmit#submit keydown->autosubmit#preventEnter" } %>
-  </div>
+          <hr class="my-3">
+          <div id="lb_flash"></div>
+          <%= form_with url: global_lunch_breaks_path, method: :patch, data: { turbo: true } do %>
+            <%= hidden_field_tag :date_from, @date_from %>
+            <%= hidden_field_tag :date_to,   @date_to %>
+            <%= hidden_field_tag :user_id,   @user_id %>
 
-  <%# Невидимая кнопка — на случай отключённого JS/доступности %>
-  <button type="submit" class="btn btn-primary btn-sm d-none">Применить</button>
-<% end %>
+            <label class="form-label small text-muted">Глобальный обед (мин)</label>
+            <div class="input-group input-group-sm">
+              <%= number_field_tag "lunch_break[minutes]", global_lunch_minutes, min: 0, step: 5, class: "form-control" %>
+              <button class="btn btn-outline-primary" type="submit">Сохранить</button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </aside>

@@ -2,3 +2,32 @@
 @use 'bootstrap-icons/font/bootstrap-icons';
 
 @use 'custom';
+
+body { padding-top: 3.5rem; }
+
+/* Спиннер/оверлей прямо внутри turbo-frame, когда он загружает данные */
+turbo-frame#worktime_frame { position: relative; min-height: 140px; }
+
+turbo-frame#worktime_frame .wt-loading {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.55); z-index: 5;
+}
+
+turbo-frame#worktime_frame[busy] .wt-loading { display: flex; }
+
+/* приглушить содержимое на время запроса */
+turbo-frame#worktime_frame[busy] .wt-content {
+  opacity: .4; filter: blur(.5px);
+}
+
+.btn-group-xs > .btn, .btn-xs {
+  padding: .15rem .3rem;
+  font-size: .75rem;
+  line-height: 1.0;
+  border-radius: .2rem;
+// padding: 1px 5px;
+// font-size: 12px;
+// line-height: 1.5;
+// border-radius: 3px;
+}

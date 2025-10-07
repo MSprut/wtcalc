@@ -1,0 +1,15 @@
+<div class="container-fluid py-3">
+  <h1 class="h5 mb-3">Сводка рабочего времени</h1>
+
+  <div class="row g-3">
+    <%= render "worktime/filter", action_path: summary_worktime_path %>
+    <section class="col-lg-9">
+      <div class="d-flex flex-wrap gap-2 justify-content-end mb-2">
+        <%= link_to "CSV", export_worktime_path(request.query_parameters.merge(format: :csv,  mode: :matrix)),  class: "btn btn-outline-secondary btn-sm", data: { turbo: false } %>
+        <%= link_to "XLSX", export_worktime_path(request.query_parameters.merge(format: :xlsx, mode: :matrix)), class: "btn btn-outline-secondary btn-sm", data: { turbo: false } %>
+      </div>
+
+      <%= render "worktime/summary_matrix", rows: @matrix_rows, dates: @dates, pagy: @pagy %>
+    </section>
+  </div>
+</div>

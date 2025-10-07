@@ -1,0 +1,8 @@
+ru:
+  date:
+    formats:
+      default: "%d.%m.%Y"
+      short: "%-d %b"
+      xshort: "%d.%m"
+      long: "%d %B %Y"
+      fname: "%d-%m-%Y"

@@ -15,15 +15,18 @@
       </thead>
       <tbody>
         <% passes.each do |p| %>
+          <%# div = p.user.user_division_memberships.active_at(p.happened_at).first&.division %>
+          <%# company_name = div&.companies&.first&.name %>
           <% div = p.user.user_division_memberships.active_at(p.happened_at).first&.division %>
           <% company_name = div&.companies&.first&.name %>
+          <!--td><%#= company_name || "—" %></td-->
           <% tabno = p.user.personal_identifier_assignments
                       .active_at(p.happened_at)
                       .includes(:personal_identifier)
                       .first&.personal_identifier&.normalized_value %>
 
           <tr style="word-break:break-word; white-space:normal;">
-            <td><%= (p.raw&.[]("Фирма") || company_name).to_s %></td>
+            <td><%= (p.raw&.[]("Фирма") || company_name || "—").to_s %></td>
             <td><%= (p.raw&.[]("Подразделение") || div&.name).to_s %></td>
             <td><%= [p.user.last_name, p.user.first_name, p.user.middle_name].compact_blank.join(" ") %></td>
             <td><%= p.user.position.to_s %></td>

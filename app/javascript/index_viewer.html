@@ -1,0 +1,498 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Binary viewer — parse • normalize • chart (offline)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root { --fg:#111; --muted:#6b7280; --bg:#fff; --b:#e5e7eb; --p:#0d6efd; }
+  body { font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--fg); background:var(--bg); margin:16px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .btn { padding:6px 10px; border:1px solid var(--b); border-radius:8px; background:#f8fafc; cursor:pointer; }
+  .btn:hover { background:#f1f5f9; }
+  .card { border:1px solid var(--b); border-radius:12px; padding:12px; margin-top:12px; }
+  .muted { color:var(--muted); }
+  label { font-size:12px; color:var(--muted); margin-right:6px; }
+  input[type="number"], select { padding:6px 8px; border:1px solid var(--b); border-radius:8px; }
+  .grid { display:grid; grid-template-columns: repeat(4, max-content); gap:10px 14px; align-items:center; }
+  .num { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  #chartBox { position:relative; height: 420px; }
+  pre { background:#0b1020; color:#d1d5db; padding:10px; border-radius:8px; overflow:auto; }
+  .sep { height:1px; background:var(--b); margin:8px 0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:12px; }
+</style>
+
+<div class="row">
+  <button class="btn" id="pickFolder">Папка…</button>
+  <input id="dir" type="file" webkitdirectory directory multiple hidden>
+  <button class="btn" id="pickFile">Файл…</button>
+  <input id="file" type="file" accept=".bin,.dat,.raw" hidden>
+
+  <span class="muted">Файл: <span id="fname">—</span></span>
+  <span class="muted">Размер: <span id="fsize">—</span></span>
+  <span class="muted">Слов 32-бит: <span id="icnt">—</span></span>
+</div>
+
+<div class="card">
+  <div class="row">
+    <div>
+      <label for="dtype">Формат</label>
+      <select id="dtype">
+        <option value="float32">float32</option>
+        <option value="int16">int16</option>
+        <option value="uint16">uint16</option>
+        <option value="int32">int32</option>
+        <option value="uint32">uint32</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="endian">Порядок байт</label>
+      <select id="endian">
+        <option value="le">little-endian</option>
+        <option value="be">big-endian</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="offset">Смещение, байт</label>
+      <input id="offset" type="number" class="num" value="0" min="0" step="1" style="width:90px;">
+    </div>
+
+    <div>
+      <label for="channels">Каналов (на запись)</label>
+      <input id="channels" type="number" class="num" value="2" min="1" max="16" step="1" style="width:70px;">
+    </div>
+
+    <div>
+      <label for="interleaved">Интерлив</label>
+      <select id="interleaved">
+        <option value="1">интерлив (a0,a1,a2,...)</option>
+        <option value="0">по каналам (a0..a0, затем a1..a1)</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="samplerate">Частота (Гц)</label>
+      <input id="samplerate" type="number" class="num" value="1" min="0.0001" step="0.1" style="width:90px;">
+    </div>
+
+    <div>
+      <label for="maxp">Точек макс.</label>
+      <input id="maxp" type="number" class="num" value="4000" min="200" step="200" style="width:90px;">
+    </div>
+
+    <button class="btn" id="applyParse">Применить</button>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="row">
+    <div>
+      <label for="normMode">Нормализация</label>
+      <select id="normMode">
+        <option value="identity">Без изменений</option>
+        <option value="linear">Linear: (x - zero) * scale</option>
+        <option value="header">Из заголовка (scale/zero)</option>
+        <option value="minmax">Min-Max [0..1]</option>
+        <option value="zscore">Z-Score</option>
+      </select>
+    </div>
+
+    <div>
+      <label>scale:</label>
+      <input id="s0" class="num" type="number" step="any" value="1" style="width:80px;">
+      <input id="s1" class="num" type="number" step="any" value="1" style="width:80px;">
+      <input id="s2" class="num" type="number" step="any" value="1" style="width:80px;">
+      <input id="s3" class="num" type="number" step="any" value="1" style="width:80px;">
+    </div>
+
+    <div>
+      <label>zero:</label>
+      <input id="z0" class="num" type="number" step="any" value="0" style="width:80px;">
+      <input id="z1" class="num" type="number" step="any" value="0" style="width:80px;">
+      <input id="z2" class="num" type="number" step="any" value="0" style="width:80px;">
+      <input id="z3" class="num" type="number" step="any" value="0" style="width:80px;">
+    </div>
+
+    <button class="btn" id="applyNorm">Нормализовать</button>
+    <button class="btn" id="saveProfile">Сохранить профиль</button>
+    <button class="btn" id="loadProfile">Загрузить профиль</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row">
+    <div>
+      <label for="chartMode">График</label>
+      <select id="chartMode">
+        <option value="line">Линии (все выбранные каналы)</option>
+        <option value="stack">Stacked bar по каналу 0 (лимит)</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Каналы</label>
+      <label><input type="checkbox" class="ch" value="0" checked> a0</label>
+      <label><input type="checkbox" class="ch" value="1" checked> a1</label>
+      <label><input type="checkbox" class="ch" value="2"> a2</label>
+      <label><input type="checkbox" class="ch" value="3"> a3</label>
+    </div>
+
+    <div>
+      <label for="limit">Лимит (для stack), ед.</label>
+      <input id="limit" type="number" class="num" value="8" min="0" step="0.25" style="width:80px;">
+    </div>
+
+    <button class="btn" id="render">Перерисовать график</button>
+  </div>
+
+  <div id="chartBox" style="margin-top:10px;">
+    <canvas id="chart"></canvas>
+  </div>
+</div>
+
+<h4 style="margin:14px 0 6px;">Первые 256 байт (hexdump)</h4>
+<pre id="hex">—</pre>
+
+<script>
+/* ===== Chart.js loader: локально ./chart.umd.js, иначе CDN ===== */
+(function loadChartJS(){
+  const add = (src) => new Promise((res, rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  add('./chart.umd.js').catch(()=> add('https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js'))
+  .then(()=> console.log('Chart.js loaded'))
+  .catch(()=> alert('Не удалось загрузить Chart.js'));
+})();
+
+/* ===== State ===== */
+const $ = (sel)=>document.querySelector(sel);
+let BUF = null;          // ArrayBuffer исходник
+let RAW = [];            // [Float64Array per channel] — без нормализации
+let DATA = [];           // [Float64Array per channel] — после нормализации
+let TIME = [];           // массив X (в секундах)
+let chart = null;
+
+/* ===== UI ===== */
+$("#pickFolder").addEventListener("click", ()=> $("#dir").click());
+$("#pickFile").addEventListener("click", ()=> $("#file").click());
+$("#dir").addEventListener("change", async ()=>{
+  const files = Array.from($("#dir").files);
+  const target = files.find(f => f.name.toLowerCase()==='index.bin') || files[0];
+  if (!target) return alert('В папке нет файлов');
+  await loadFile(target);
+});
+$("#file").addEventListener("change", async ()=>{
+  const f = $("#file").files[0]; if(!f) return;
+  await loadFile(f);
+});
+$("#applyParse").addEventListener("click", ()=> reparse());
+$("#applyNorm").addEventListener("click", ()=> { normalize(); renderChart(); });
+$("#render").addEventListener("click", ()=> renderChart());
+$("#saveProfile").addEventListener("click", saveProfile);
+$("#loadProfile").addEventListener("click", loadProfile);
+["dtype","endian","offset","channels","interleaved","samplerate","normMode","maxp","chartMode","limit"].forEach(id=>{
+  $("#"+id).addEventListener("change", (e)=>{
+    if (id==="normMode") { normalize(); renderChart(); }
+    if (id==="samplerate") { rebuildTime(); renderChart(); }
+  });
+});
+document.querySelectorAll(".ch").forEach(cb=> cb.addEventListener("change", ()=> renderChart()));
+
+/* ===== Load & initial parse ===== */
+async function loadFile(file){
+  const buf = await file.arrayBuffer(); BUF = buf;
+  $("#fname").textContent = file.name + (file.webkitRelativePath ? ` (${file.webkitRelativePath})` : '');
+  $("#fsize").textContent = `${file.size.toLocaleString('ru-RU')} байт`;
+  $("#hex").textContent   = hexdump(new Uint8Array(buf.slice(0,256)));
+  $("#icnt").textContent  = Math.floor(buf.byteLength/4).toLocaleString('ru-RU');
+
+  reparse();            // распарсим по текущим настройкам
+  normalize();          // применим нормализацию (по умолчанию «Без изменений»)
+  renderChart();        // отрисуем
+}
+
+/* ===== Parsing ===== */
+function reparse(){
+  if (!BUF) return;
+  const dtype       = $("#dtype").value;            // float32/int16/...
+  const little      = $("#endian").value === 'le';
+  const offsetBytes = +$("#offset").value || 0;
+  const channels    = Math.max(1, +$("#channels").value || 1);
+  const interleaved = $("#interleaved").value === '1';
+  const dv = new DataView(BUF);
+
+  // размер числа
+  const B = ({float32:4,int16:2,uint16:2,int32:4,uint32:4})[dtype] || 4;
+  if (offsetBytes >= BUF.byteLength) return alert('Смещение больше размера файла');
+
+  // посчитаем количество сэмплов на канал
+  const payload = BUF.byteLength - offsetBytes;
+  let samplesPerChannel;
+  if (interleaved) {
+    const bytesPerRecord = channels * B;
+    samplesPerChannel = Math.floor(payload / bytesPerRecord);
+  } else {
+    samplesPerChannel = Math.floor(payload / (channels * B));
+  }
+
+  // выделим массивы каналов
+  RAW = Array.from({length: channels}, ()=> new Float64Array(samplesPerChannel));
+
+  const read = (byteOff)=>{
+    switch(dtype){
+      case 'float32': return dv.getFloat32(byteOff, little);
+      case 'int16':   return dv.getInt16(byteOff, little);
+      case 'uint16':  return dv.getUint16(byteOff, little);
+      case 'int32':   return dv.getInt32(byteOff, little);
+      case 'uint32':  return dv.getUint32(byteOff, little);
+      default:        return dv.getFloat32(byteOff, little);
+    }
+  };
+
+  if (interleaved) {
+    let base = offsetBytes;
+    for (let i=0;i<samplesPerChannel;i++){
+      for (let c=0;c<channels;c++){
+        RAW[c][i] = read(base + (c*B));
+      }
+      base += channels*B;
+    }
+  } else {
+    // блоками по каналу
+    for (let c=0;c<channels;c++){
+      const start = offsetBytes + c*samplesPerChannel*B;
+      for (let i=0;i<samplesPerChannel;i++){
+        RAW[c][i] = read(start + i*B);
+      }
+    }
+  }
+
+  rebuildTime();
+  DATA = RAW.map(a=> a.slice()); // изначально копия без нормализации
+}
+
+/* ===== Time axis ===== */
+function rebuildTime(){
+  if (!RAW || RAW.length===0) return;
+  const n = RAW[0].length;
+  const fs = Math.max(0.0001, +$("#samplerate").value || 1);
+  TIME = new Float64Array(n);
+  for (let i=0;i<n;i++) TIME[i] = i / fs; // секунды
+}
+
+/* ===== Normalization ===== */
+function normalize(){
+  if (!RAW || RAW.length===0) return;
+  const mode = $("#normMode").value;
+
+  // считываем ручные коэффициенты
+  const scales = [+$("#s0").value||0, +$("#s1").value||0, +$("#s2").value||0, +$("#s3").value||0];
+  const zeros  = [+$("#z0").value||0, +$("#z1").value||0, +$("#z2").value||0, +$("#z3").value||0];
+
+  if (mode === 'identity') {
+    DATA = RAW.map(a=> a.slice());
+    return;
+  }
+
+  if (mode === 'header') {
+    // эвристика «как в старом»: первые 8*float32 — scale0..3, zero0..3 (LE)
+    try {
+      const dv = new DataView(BUF);
+      const s = [0,1,2,3].map(i=> dv.getFloat32(i*4, true));
+      const z = [0,1,2,3].map(i=> dv.getFloat32((4+i)*4, true));
+      DATA = RAW.map((arr, c)=> applyLinear(arr, s[c]||1, z[c]||0));
+      // покажем считанные коэффициенты в UI
+      [$("#s0"),$("#s1"),$("#s2"),$("#s3")].forEach((el,i)=> el.value = s[i]||1);
+      [$("#z0"),$("#z1"),$("#z2"),$("#z3")].forEach((el,i)=> el.value = z[i]||0);
+      return;
+    } catch(e){
+      alert('Заголовок с коэффициентами не распознан — используйте режим Linear/ручной.');
+      DATA = RAW.map(a=> a.slice());
+      return;
+    }
+  }
+
+  if (mode === 'linear') {
+    DATA = RAW.map((arr, c)=> applyLinear(arr, scales[c]||1, zeros[c]||0));
+    return;
+  }
+
+  if (mode === 'minmax') {
+    DATA = RAW.map(arr => {
+      let min=+Infinity, max=-Infinity;
+      for (let i=0;i<arr.length;i++){ const v=arr[i]; if(v<min)min=v; if(v>max)max=v; }
+      const d = (max-min) || 1;
+      return mapArray(arr, v => (v-min)/d);
+    });
+    return;
+  }
+
+  if (mode === 'zscore') {
+    DATA = RAW.map(arr => {
+      let sum=0, sum2=0, n=arr.length;
+      for (let i=0;i<n;i++){ const v=arr[i]; sum+=v; sum2+=v*v; }
+      const mean = sum/n, std = Math.sqrt(Math.max(sum2/n - mean*mean, 1e-12));
+      return mapArray(arr, v => (v-mean)/std);
+    });
+    return;
+  }
+}
+
+function applyLinear(arr, scale, zero){
+  return mapArray(arr, v => (v - zero) * (scale || 1));
+}
+function mapArray(arr, fn){
+  const out = new Float64Array(arr.length);
+  for (let i=0;i<arr.length;i++) out[i] = fn(arr[i], i);
+  return out;
+}
+
+/* ===== Downsample (stride) ===== */
+function strideReducer(n, maxN){
+  if (n <= maxN) return { idx:(i)=>true, step:1 };
+  const step = Math.ceil(n / maxN);
+  return { idx:(i)=> (i % step)===0, step };
+}
+
+/* ===== Chart render ===== */
+function renderChart(){
+  if (!window.Chart || !DATA || DATA.length===0) return;
+
+  const chartMode = $("#chartMode").value;
+  const limit     = +$("#limit").value || 0;
+  const maxP      = Math.max(100, +$("#maxp").value || 4000);
+  const picks     = Array.from(document.querySelectorAll(".ch:checked")).map(cb=> +cb.value).filter(v=> v<DATA.length);
+
+  // downsample
+  const n = DATA[0].length;
+  const reducer = strideReducer(n, maxP);
+  const X = [];
+  for (let i=0;i<n;i++) if (reducer.idx(i)) X.push(TIME[i]);
+
+  let datasets = [];
+
+  if (chartMode === 'line') {
+    datasets = picks.map((c, idx)=> ({
+      type: 'line',
+      label: `a${c}`,
+      data: reduceXY(X, DATA[c], reducer),
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0.15
+    }));
+
+    // baseline (лимит)
+    if (limit > 0 && X.length>1) {
+      datasets.push({
+        type:'line', label:`limit ${limit}`,
+        data:[{x:X[0],y:limit},{x:X[X.length-1],y:limit}],
+        borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0
+      });
+    }
+
+    draw({ datasets, timeAxis:true, stacked:false });
+    return;
+  }
+
+  // stacked bar по первому выбранному каналу
+  const baseC = picks[0] ?? 0;
+  const arr   = DATA[baseC];
+  const base  = []; const over=[]; const gap=[];
+  for (let i=0;i<n;i++){
+    if (!reducer.idx(i)) continue;
+    const y = arr[i] ?? 0;
+    base.push({ x: TIME[i], y: Math.min(y, limit) });
+    over.push({ x: TIME[i], y: Math.max(y - limit, 0) });
+    gap.push ( { x: TIME[i], y: Math.max(limit - y, 0) });
+  }
+
+  datasets = [
+    { type:'bar', label:'до лимита', data: base, stack:'s', borderWidth:0, barPercentage:0.9, categoryPercentage:0.9 },
+    { type:'bar', label:'недобор',   data: gap,  stack:'s', borderWidth:0, barPercentage:0.9, categoryPercentage:0.9 },
+    { type:'bar', label:'переработка',data: over, stack:'s', borderWidth:0, barPercentage:0.9, categoryPercentage:0.9, order:10 },
+  ];
+  if (limit > 0 && X.length>1) {
+    datasets.push({
+      type:'line', label:`limit ${limit}`, data:[{x:X[0],y:limit},{x:X[X.length-1],y:limit}],
+      borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0, order:99
+    });
+  }
+  draw({ datasets, timeAxis:true, stacked:true });
+}
+
+function reduceXY(X, Y, reducer){
+  const out = [];
+  for (let i=0;i<Y.length;i++){
+    if (!reducer.idx(i)) continue;
+    out.push({ x: X[out.length], y: Y[i] });
+  }
+  return out;
+}
+
+function draw({ datasets, timeAxis, stacked }){
+  const ctx = $("#chart").getContext('2d');
+  if (chart) { chart.destroy(); chart=null; }
+  chart = new Chart(ctx, {
+    data: { datasets },
+    options: {
+      parsing: { xAxisKey:'x', yAxisKey:'y' },
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: timeAxis ? { type:'linear', title:{display:true, text:'t, s'}} : { type:'linear' },
+        y: { beginAtZero: true, stacked: !!stacked }
+      },
+      plugins: { legend: { display:true, position:'top' } },
+      interaction: { mode:'nearest', intersect:false }
+    }
+  });
+}
+
+/* ===== Profiles (localStorage) ===== */
+function saveProfile(){
+  const profile = {
+    dtype: $("#dtype").value,
+    endian: $("#endian").value,
+    offset: +$("#offset").value||0,
+    channels: +$("#channels").value||1,
+    interleaved: $("#interleaved").value,
+    samplerate: +$("#samplerate").value||1,
+    normMode: $("#normMode").value,
+    scale: [+$("#s0").value||1, +$("#s1").value||1, +$("#s2").value||1, +$("#s3").value||1],
+    zero:  [+$("#z0").value||0, +$("#z1").value||0, +$("#z2").value||0, +$("#z3").value||0]
+  };
+  localStorage.setItem('bin_view_profile', JSON.stringify(profile));
+  alert('Профиль сохранён');
+}
+function loadProfile(){
+  const txt = localStorage.getItem('bin_view_profile'); if (!txt) return alert('Нет сохранённого профиля');
+  try{
+    const p = JSON.parse(txt);
+    $("#dtype").value = p.dtype; $("#endian").value = p.endian;
+    $("#offset").value = p.offset; $("#channels").value = p.channels;
+    $("#interleaved").value = p.interleaved; $("#samplerate").value = p.samplerate;
+    $("#normMode").value = p.normMode;
+    [$("#s0"),$("#s1"),$("#s2"),$("#s3")].forEach((el,i)=> el.value = p.scale?.[i] ?? 1);
+    [$("#z0"),$("#z1"),$("#z2"),$("#z3")].forEach((el,i)=> el.value = p.zero?.[i] ?? 0);
+    reparse(); normalize(); renderChart();
+  }catch(e){ alert('Не удалось загрузить профиль'); }
+}
+
+/* ===== Hexdump ===== */
+function hexdump(arr, width=16){
+  let out = "";
+  for (let i=0;i<arr.length;i+=width){
+    const chunk = arr.slice(i, i+width);
+    const hex   = Array.from(chunk).map(b => b.toString(16).padStart(2,"0")).join(" ");
+    const ascii = Array.from(chunk).map(b => (b>=32&&b<127)?String.fromCharCode(b):".").join("");
+    out += `${i.toString(16).padStart(8,"0")}  ${hex.padEnd(width*3)}  ${ascii}\n`;
+  }
+  return out;
+}
+</script>
+
+<script>
+  (function loadZoom(){
+    const add = (src) => new Promise((ok,err)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=err;document.head.appendChild(s)});
+    add('./chartjs-plugin-zoom.umd.js')
+      .catch(()=> add('https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.umd.min.js'))
+      .then(()=> console.log('zoom plugin loaded'));
+  })();
+</script>

@@ -1,10 +1,17 @@
 <turbo-frame id="worktime_frame">
-  <%#= render "worktime/filter" %>
-  <%= render "worktime/summary_cards", stats: stats %>
-  <%= render "worktime/chart", series: series, date_from: date_from, date_to: date_to %>
-  <%= render "worktime/table", pagy: pagy, stats: stats, date_from: date_from, date_to: date_to %>
-</turbo-frame>
+  <div class="wt-loading">
+    <div class="d-flex align-items-center gap-2">
+      <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+      <span class="small">Загрузка данных...</span>
+    </div>
+  </div>
 
-<%#= render "worktime/summary_cards", stats: stats %>
-<%#= render "worktime/chart", series: series, date_from: date_from, date_to: date_to %>
-<%#= render "worktime/table", pagy: pagy, stats: stats %>
+  <div class="wt-content">
+    <%= render "worktime/summary_cards", stats: stats %>
+    <%= render "worktime/chart", series: series, date_from: date_from, date_to: date_to %>
+    <%= render "worktime/table", pagy: pagy, stats: stats, date_from: date_from, date_to: date_to %>
+    <div class="col-12 col-xl-12" id="worktime_summary">
+    <%= render "worktime/summary_table", rows: @rows, stats: stats, pagy: pagy %>
+  </div>
+  </div>
+</turbo-frame>
