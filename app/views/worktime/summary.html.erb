@@ -4,10 +4,24 @@
   <div class="row g-3">
     <%= render "worktime/filter", action_path: summary_worktime_path %>
     <section class="col-lg-9">
-      <div class="d-flex flex-wrap gap-2 justify-content-end mb-2">
-        <%= link_to "CSV", export_worktime_path(request.query_parameters.merge(format: :csv,  mode: :matrix)),  class: "btn btn-outline-secondary btn-sm", data: { turbo: false } %>
-        <%= link_to "XLSX", export_worktime_path(request.query_parameters.merge(format: :xlsx, mode: :matrix)), class: "btn btn-outline-secondary btn-sm", data: { turbo: false } %>
+      <div class="d-flex flex-row justify-content-between">
+        <div class="mb-2">
+          <button type="button"
+            class="btn btn-outline-secondary btn-xs"
+            title="Сбросить пользовательский порядок строк"
+            data-controller="orderreset"
+            data-orderreset-storage-key-value="wt-matrix-<%= @date_from %>-<%= @date_to %>-<%= @user_id || 'all' %>"
+            data-orderreset-input-value="#wt_order"
+            data-orderreset-form-selector-value='form[action$="/worktime/summary"]'
+            data-action="click->orderreset#reset">
+            Сбросить порядок
+          </button>
+        </div>
+      <div class="gap-2 mb-2">
+        <%= link_to "CSV", export_worktime_path(request.query_parameters.merge(format: :csv,  mode: :matrix)),  class: "btn btn-outline-secondary btn-xs", data: { turbo: false } %>
+        <%= link_to "XLSX", export_worktime_path(request.query_parameters.merge(format: :xlsx, mode: :matrix)), class: "btn btn-outline-secondary btn-xs", data: { turbo: false } %>
       </div>
+    </div>
 
       <%= render "worktime/summary_matrix", rows: @matrix_rows, dates: @dates, pagy: @pagy %>
     </section>
