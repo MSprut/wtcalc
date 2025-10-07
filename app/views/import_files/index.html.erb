@@ -5,7 +5,7 @@
   <%= button_to "Удалить последний импорт",
         destroy_last_import_files_path,
         method: :delete,
-        class: "btn btn-outline-danger btn-sm",
+        class: "btn btn-outline-danger btn-xs",
         form: { data: { turbo_confirm: "Удалить все данные из последнего импорта?" } } %>
   <%#= link_to "К CSV", csv_index_path, class: "btn btn-outline-secondary btn-sm" %>
 </div>
